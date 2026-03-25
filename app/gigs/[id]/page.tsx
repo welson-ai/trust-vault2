@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Star, Clock, Package, User, CheckCircle } from "lucide-react"
+import { Star, Clock, Package, User, CheckCircle, ArrowLeft } from "lucide-react"
 import { getGigById, getReviewsByGig } from "@/lib/gigs"
 import type { Gig, Review, GigPackage } from "@/lib/types/gigs"
 import Link from "next/link"
@@ -107,6 +107,18 @@ export default function GigDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Back Button */}
+      <div className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
+
       <div className="mb-6">
         <Badge variant="secondary" className="mb-2">
           {gig.category}
