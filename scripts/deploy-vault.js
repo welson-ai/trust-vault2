@@ -5,8 +5,8 @@ const { ethers } = require("hardhat");
 async function main() {
   console.log("Deploying TrustVault contract...");
 
-  // USDC Contract on Base Sepolia
-  const usdcAddress = "0x036CbD5b381b824e568Ff7c85cE36985D8B764a";
+  // USDC Contract on Base Sepolia (correct address)
+  const usdcAddress = "0x7169D38820dfd117C3FA1f22a697dBA58d90BA069";
   
   // Deploy contract with USDC address
   const TrustVault = await ethers.getContractFactory("TrustVault");

@@ -4,13 +4,13 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, X, Wallet, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
-import { useAccount, useSwitchChain, useBalance, useReadContract } from "wagmi"
+import { useAccount, useSwitchChain, useBalance, useReadContract, useChainId } from "wagmi"
 import { baseSepolia } from "wagmi/chains"
 import { parseUnits, formatUnits } from "viem"
 import { useVaultDeposit } from "@/lib/hooks/useVault"
 
-// USDC Contract on Base Sepolia
-const USDC_ADDRESS = "0x036CbD5b381b824e568Ff7c85cE36985D8B764a" as const
+// USDC Contract on Base Sepolia (correct address)
+const USDC_ADDRESS = "0x7169D38820dfd117C3FA1f22a697dBA58d90BA069" as const
 const USDC_ABI = [
   {
     "inputs": [
@@ -64,6 +64,7 @@ const USDC_ABI = [
 export function Web3ContractPayment({ formData, setFormData, onDepositComplete }: any) {
   const { address, isConnected } = useAccount()
   const { switchChain } = useSwitchChain()
+  const chainId = useChainId()
   const { data: ethBalance } = useBalance({ address })
   const { data: usdcBalance } = useReadContract({
     address: USDC_ADDRESS,
@@ -112,7 +113,7 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
     }
 
     // Check if on correct chain
-    if (ethBalance?.chainId !== baseSepolia.id) {
+    if (chainId !== baseSepolia.id) {
       try {
         await switchChain({ chainId: baseSepolia.id })
       } catch (error) {
@@ -123,7 +124,7 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
     }
 
     // Check if user has sufficient USDC balance
-    const userBalance = usdcBalance || 0n
+    const userBalance = usdcBalance || (0 as any)
     const requiredAmount = parseUnits(totalAmount.toString(), 6) // USDC has 6 decimals
     
     if (userBalance < requiredAmount) {
@@ -304,7 +305,7 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
           ) : (
             <Button 
               onClick={handleDeposit}
-              disabled={isDepositing || isConfirming || !totalAmount || (usdcBalance || 0n) < parseUnits(totalAmount.toString(), 6)}
+              disabled={isDepositing || isConfirming || !totalAmount || (usdcBalance || (0 as any)) < parseUnits(totalAmount.toString(), 6)}
               className="w-full rounded-full"
             >
               {isDepositing || isConfirming ? (

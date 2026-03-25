@@ -65,7 +65,7 @@ The Trust Vault contract provides:
 - **Chain ID**: 84532
 - **RPC URL**: https://sepolia.base.org
 - **Explorer**: https://sepolia.basescan.org
-- **USDC Token**: 0x036CbD5b381b824e568Ff7c85cE36985D8B764a
+- **USDC Token**: 0x7169D38820dfd117C3FA1f22a697dBA58d90BA069
 
 ## 🎯 Integration with Frontend
 
@@ -84,7 +84,7 @@ The frontend integrates with contract through:
 4. **Deposit USDC** to the vault contract
 5. **Transaction confirmation** and tracking
 
-## �🔒 Security Considerations
+## �� Security Considerations
 
 - Contract uses OpenZeppelin's `ReentrancyGuard`
 - Only owner can release funds (escrow control)
