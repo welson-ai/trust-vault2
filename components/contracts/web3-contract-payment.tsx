@@ -10,6 +10,27 @@ import { parseUnits, formatUnits } from "viem"
 import { useVaultDeposit } from "@/lib/hooks/useVault"
 import { USDC_ADDRESS, USDC_ADDRESS_SEPOLIA, USDC_ADDRESS_MAINNET } from "@/lib/contracts/vault"
 
+// Direct ERC20 balance check (alternative method)
+const useERC20Balance = (contractAddress: string, walletAddress: string | undefined) => {
+  return useReadContract({
+    address: contractAddress as `0x${string}`,
+    abi: [
+      {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    functionName: 'balanceOf',
+    args: walletAddress ? [walletAddress] : undefined,
+    enabled: !!walletAddress && !!contractAddress,
+  })
+}
+
 // Get appropriate USDC address based on current network
 const getUSDCAddress = (chainId: number) => {
   switch (chainId) {
@@ -97,37 +118,33 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
     abi: USDC_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && !!currentUSDCAddress,
+    }
   })
   
   console.log("- USDC Balance Raw:", usdcBalance)
   console.log("- Balance Error:", balanceError)
   console.log("- Balance Loading:", balanceLoading)
+  console.log("- Balance Error Message:", balanceError?.message)
+  console.log("- Balance Error Code:", balanceError?.code)
   
   // Try multiple USDC addresses if primary fails
   const [fallbackBalance, setFallbackBalance] = useState<any>(null)
   
   // Read from all possible USDC addresses for debugging
-  const { data: debugBalance1 } = useReadContract({
-    address: ALL_USDC_ADDRESSES[0],
-    abi: USDC_ABI,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    enabled: !!address && !!balanceError,
-  })
-  
-  const { data: debugBalance2 } = useReadContract({
-    address: ALL_USDC_ADDRESSES[1],
-    abi: USDC_ABI,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    enabled: !!address && !!balanceError,
-  })
+  const { data: debugBalance1 } = useERC20Balance(ALL_USDC_ADDRESSES[0], address)
+  const { data: debugBalance2 } = useERC20Balance(ALL_USDC_ADDRESSES[1], address)
+  const { data: debugBalance3 } = useERC20Balance(ALL_USDC_ADDRESSES[2], address)
+  const { data: debugBalance4 } = useERC20Balance(ALL_USDC_ADDRESSES[3], address)
   
   console.log("- Debug Balance 1:", debugBalance1)
   console.log("- Debug Balance 2:", debugBalance2)
+  console.log("- Debug Balance 3:", debugBalance3)
+  console.log("- Debug Balance 4:", debugBalance4)
   
   // Use working balance or fallback
-  const workingBalance = usdcBalance || debugBalance1 || debugBalance2 || fallbackBalance
+  const workingBalance = usdcBalance || debugBalance1 || debugBalance2 || debugBalance3 || debugBalance4 || fallbackBalance
   console.log("- Working Balance:", workingBalance)
   
   const [showDepositModal, setShowDepositModal] = useState(false)
@@ -218,13 +235,45 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
     )
   }
 
-  if (formData.type === "freelance") {
-    return (
-      <div className="space-y-8">
-        {formData.contractType === "one-off" ? (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Project Budget</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {/* Error Display */}
+  {balanceError && (
+    <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+      <div className="flex items-center gap-2">
+        <AlertCircle className="w-5 h-5 text-red-500" />
+        <div>
+          <p className="font-semibold text-red-500">Balance Reading Error</p>
+          <p className="text-sm text-red-600">Error: {balanceError.message}</p>
+          <p className="text-xs text-red-500">Code: {balanceError.code || 'UNKNOWN'}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Trying alternative addresses... Check console for details.
+          </p>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Debug Info Panel */}
+  {process.env.NODE_ENV === 'development' && (
+    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+      <p className="font-semibold text-blue-500 mb-2">🔍 Debug Information</p>
+      <div className="text-xs space-y-1">
+        <p><strong>Network:</strong> {chainId === base.id ? 'Base Mainnet' : chainId === baseSepolia.id ? 'Base Sepolia' : 'Unknown'}</p>
+        <p><strong>USDC Address:</strong> {currentUSDCAddress}</p>
+        <p><strong>Wallet Address:</strong> {address || 'Not connected'}</p>
+        <p><strong>Working Balance:</strong> {workingBalance ? formatUnits(workingBalance, 6) : 'Not found'}</p>
+      </div>
+    </div>
+  )}
+
+  {formData.type === "freelance" && (
+    <div className="space-y-8">
+      {formData.contractType === "one-off" ? (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Project Budget</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Total Amount (USDC)</label>
+              <div className="flex gap-2">
               <div>
                 <label className="block text-sm font-semibold mb-2">Total Amount (USDC)</label>
                 <div className="flex gap-2">
