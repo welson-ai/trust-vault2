@@ -23,8 +23,14 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
 # Compile contract
 npx hardhat compile
 
-# Deploy to Base Sepolia
+# Deploy to Base Sepolia (default)
 npx hardhat run scripts/deploy-vault.js --network baseSepolia
+
+# Deploy to Base Mainnet
+npx hardhat run scripts/deploy-vault.js --network base
+
+# Or specify network with environment variable
+NETWORK=base npx hardhat run scripts/deploy-vault.js --network base
 ```
 
 ### 3. Update Contract Address
@@ -61,11 +67,19 @@ The Trust Vault contract provides:
 
 ## 🌐 Network Configuration
 
+### Base Sepolia (Testnet)
 - **Network**: Base Sepolia Testnet
 - **Chain ID**: 84532
 - **RPC URL**: https://sepolia.base.org
 - **Explorer**: https://sepolia.basescan.org
 - **USDC Token**: 0x7169D38820dfd117C3FA1f22a697dBA58d90BA069
+
+### Base Mainnet (Production)
+- **Network**: Base Mainnet
+- **Chain ID**: 8453
+- **RPC URL**: https://mainnet.base.org
+- **Explorer**: https://basescan.org
+- **USDC Token**: 0xd9aAEc86BC6510E7020C6d87d3661f6a95bA
 
 ## 🎯 Integration with Frontend
 
@@ -111,10 +125,11 @@ npx hardhat coverage
 
 ## 📝 Next Steps
 
-1. Deploy contract to Base Sepolia
-2. Update contract address in frontend
-3. Test USDC approval and deposit flow
-4. Deploy to Base Mainnet (production)
+1. Deploy contract to Base Sepolia (testing)
+2. Deploy contract to Base Mainnet (production)
+3. Update contract address in frontend for both networks
+4. Test USDC approval and deposit flow on both networks
+5. Deploy to production environment
 
 ## 🚨 Important Notes
 

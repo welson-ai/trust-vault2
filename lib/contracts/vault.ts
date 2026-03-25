@@ -82,5 +82,9 @@ export const TRUST_VAULT_ABI = [
 // Base Sepolia Contract Address (replace after deployment)
 export const TRUST_VAULT_ADDRESS = "0x1234567890123456789012345678901234567890" as const
 
-// USDC Contract on Base Sepolia (correct address)
-export const USDC_ADDRESS = "0x7169D38820dfd117C3FA1f22a697dBA58d90BA069" as const
+// USDC Contract Addresses
+export const USDC_ADDRESS_SEPOLIA = "0x7169D38820dfd117C3FA1f22a697dBA58d90BA069" as const
+export const USDC_ADDRESS_MAINNET = "0xd9aAEc86BC6510E7020C6d87d3661f6a95bA" as const
+
+// Default to Sepolia for development
+export const USDC_ADDRESS = USDC_ADDRESS_SEPOLIA

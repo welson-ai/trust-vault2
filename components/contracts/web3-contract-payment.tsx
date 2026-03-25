@@ -5,12 +5,21 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, X, Wallet, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { useAccount, useSwitchChain, useBalance, useReadContract, useChainId } from "wagmi"
-import { baseSepolia } from "wagmi/chains"
+import { baseSepolia, base } from "wagmi/chains"
 import { parseUnits, formatUnits } from "viem"
 import { useVaultDeposit } from "@/lib/hooks/useVault"
+import { USDC_ADDRESS, USDC_ADDRESS_SEPOLIA, USDC_ADDRESS_MAINNET } from "@/lib/contracts/vault"
 
-// USDC Contract on Base Sepolia (correct address)
-const USDC_ADDRESS = "0x7169D38820dfd117C3FA1f22a697dBA58d90BA069" as const
+// Get appropriate USDC address based on current network
+const getUSDCAddress = (chainId: number) => {
+  switch (chainId) {
+    case base.id:
+      return USDC_ADDRESS_MAINNET
+    case baseSepolia.id:
+    default:
+      return USDC_ADDRESS_SEPOLIA
+  }
+}
 const USDC_ABI = [
   {
     "inputs": [
@@ -66,8 +75,10 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
   const { switchChain } = useSwitchChain()
   const chainId = useChainId()
   const { data: ethBalance } = useBalance({ address })
+  const currentUSDCAddress = getUSDCAddress(chainId || baseSepolia.id)
+  
   const { data: usdcBalance } = useReadContract({
-    address: USDC_ADDRESS,
+    address: currentUSDCAddress,
     abi: USDC_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -113,12 +124,13 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
     }
 
     // Check if on correct chain
-    if (chainId !== baseSepolia.id) {
+    if (chainId !== baseSepolia.id && chainId !== base.id) {
       try {
+        // Prefer Base Sepolia for testing, fallback to Base Mainnet
         await switchChain({ chainId: baseSepolia.id })
       } catch (error) {
         console.error("Failed to switch chain:", error)
-        alert("Please switch to Base Sepolia network")
+        alert("Please switch to Base Sepolia or Base Mainnet network")
         return
       }
     }
