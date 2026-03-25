@@ -448,3 +448,7 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
 
   return <div>Other contract types coming soon...</div>
 }
+
+export default function Web3ContractPaymentWrapper({ formData, setFormData, onDepositComplete }: any) {
+  return <Web3ContractPayment formData={formData} setFormData={setFormData} onDepositComplete={onDepositComplete} />
+}
