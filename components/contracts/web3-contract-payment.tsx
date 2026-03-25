@@ -445,7 +445,7 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
       </div>
     )
   }
-
+  
   return <div>Other contract types coming soon...</div>
 }
 
