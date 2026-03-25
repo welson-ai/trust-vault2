@@ -8,6 +8,7 @@ import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react"
 import { ContractBasics } from "@/components/contracts/contract-basics"
 import { ContractParticipants } from "@/components/contracts/contract-participants"
 import { ContractPayment } from "@/components/contracts/contract-payment"
+import { Web3ContractPayment } from "@/components/contracts/web3-contract-payment"
 import { ContractReview } from "@/components/contracts/contract-review"
 import { saveContract } from "@/lib/supabase"
 
@@ -15,12 +16,13 @@ export default function CreateContractPage() {
   const router = useRouter()
   const [step, setStep] = useState<"basics" | "participants" | "payment" | "review">("basics")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [depositTxHash, setDepositTxHash] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     type: "freelance" as const,
     contractType: "one-off" as const,
-    participants: [] as Array<{ email: string; role: "freelancer" | "client" | "member" }>,
+    participants: [] as Array<{ email: string; role: "freelancer" | "client" }>,
     amount: "",
     currency: "USDC",
     deadline: "",
@@ -81,6 +83,11 @@ export default function CreateContractPage() {
     }
   }, [step])
 
+  const handleDepositComplete = (txHash: string) => {
+    setDepositTxHash(txHash)
+    // Allow proceeding to review step
+  }
+
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true)
     setError("")
@@ -96,6 +103,7 @@ export default function CreateContractPage() {
         currency: formData.currency,
         deadline: formData.deadline,
         milestones: formData.milestones,
+        depositTxHash: depositTxHash, // Include the transaction hash
         status: "active" as const,
       }
 
@@ -173,7 +181,7 @@ export default function CreateContractPage() {
         <Card className="p-8 mb-8">
           {step === "basics" && <ContractBasics formData={formData} setFormData={setFormData} />}
           {step === "participants" && <ContractParticipants formData={formData} setFormData={setFormData} />}
-          {step === "payment" && <ContractPayment formData={formData} setFormData={setFormData} />}
+          {step === "payment" && <Web3ContractPayment formData={formData} setFormData={setFormData} onDepositComplete={handleDepositComplete} />}
           {step === "review" && <ContractReview formData={formData} />}
         </Card>
 
