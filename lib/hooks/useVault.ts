@@ -2,7 +2,7 @@
 
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther } from 'viem'
-import { TRUST_VAULT_ABI, TRUST_VAULT_ADDRESS } from './vault'
+import { TRUST_VAULT_ABI, TRUST_VAULT_ADDRESS } from '../contracts/vault'
 import { useState } from 'react'
 
 export function useVaultDeposit() {
