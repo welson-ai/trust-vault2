@@ -109,7 +109,7 @@ export function WithdrawModal({ isOpen, onClose, userBalance }: WithdrawModalPro
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Amount (USD)</label>
+            <label className="block text-sm font-medium mb-1">Amount (USDC)</label>
             <input
               type="number"
               step="0.01"

@@ -22,7 +22,7 @@ export default function CreateContractPage() {
     contractType: "one-off" as const,
     participants: [] as Array<{ email: string; role: "freelancer" | "client" | "member" }>,
     amount: "",
-    currency: "USD",
+    currency: "USDC",
     deadline: "",
     milestones: [] as Array<{ title: string; amount: string; dueDate: string }>,
   })

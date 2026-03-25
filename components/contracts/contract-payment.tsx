@@ -52,7 +52,7 @@ export function ContractPayment({ formData, setFormData }: any) {
                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                     className="px-4 py-2 rounded-lg border border-muted bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="USD">USD</option>
+                    <option value="USDC">USDC</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
                     <option value="KES">KES</option>
