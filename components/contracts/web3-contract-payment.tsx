@@ -16,10 +16,20 @@ const getUSDCAddress = (chainId: number) => {
     case base.id:
       return USDC_ADDRESS_MAINNET
     case baseSepolia.id:
+      return USDC_ADDRESS_SEPOLIA
     default:
+      console.log("⚠️ Unknown chain, defaulting to Sepolia USDC")
       return USDC_ADDRESS_SEPOLIA
   }
 }
+
+// Try multiple USDC addresses for debugging
+const ALL_USDC_ADDRESSES = [
+  "0x7169D38820dfd117C3FA1f22a697dBA58d90BA069", // Base Sepolia
+  "0xd9aAEc86BC6510E7020C6d87d3661f6a95bA", // Base Mainnet
+  "0x036CbD5b381b824e568Ff7c85cE36985D8B764a", // Old Base Sepolia
+  "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA028", // Another possible address
+]
 const USDC_ABI = [
   {
     "inputs": [
@@ -77,12 +87,49 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
   const { data: ethBalance } = useBalance({ address })
   const currentUSDCAddress = getUSDCAddress(chainId || baseSepolia.id)
   
-  const { data: usdcBalance } = useReadContract({
+  console.log("🔍 Debug Info:")
+  console.log("- Connected Address:", address)
+  console.log("- Chain ID:", chainId)
+  console.log("- Current USDC Address:", currentUSDCAddress)
+  
+  const { data: usdcBalance, error: balanceError, isLoading: balanceLoading } = useReadContract({
     address: currentUSDCAddress,
     abi: USDC_ABI,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
   })
+  
+  console.log("- USDC Balance Raw:", usdcBalance)
+  console.log("- Balance Error:", balanceError)
+  console.log("- Balance Loading:", balanceLoading)
+  
+  // Try multiple USDC addresses if primary fails
+  const [fallbackBalance, setFallbackBalance] = useState<any>(null)
+  
+  // Read from all possible USDC addresses for debugging
+  const { data: debugBalance1 } = useReadContract({
+    address: ALL_USDC_ADDRESSES[0],
+    abi: USDC_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    enabled: !!address && !!balanceError,
+  })
+  
+  const { data: debugBalance2 } = useReadContract({
+    address: ALL_USDC_ADDRESSES[1],
+    abi: USDC_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    enabled: !!address && !!balanceError,
+  })
+  
+  console.log("- Debug Balance 1:", debugBalance1)
+  console.log("- Debug Balance 2:", debugBalance2)
+  
+  // Use working balance or fallback
+  const workingBalance = usdcBalance || debugBalance1 || debugBalance2 || fallbackBalance
+  console.log("- Working Balance:", workingBalance)
+  
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [depositAmount, setDepositAmount] = useState("")
   
@@ -194,7 +241,9 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Current balance: {usdcBalance ? formatUnits(usdcBalance, 6) : "0"} USDC
+                  Current balance: {workingBalance ? formatUnits(workingBalance, 6) : "Loading..."} USDC
+                  {balanceError && <span className="text-destructive ml-2">❌ Balance Error</span>}
+                  {balanceLoading && <span className="text-muted-foreground ml-2">⏳ Loading...</span>}
                 </p>
               </div>
               <div>
@@ -293,15 +342,19 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Your USDC Balance</p>
-              <p className="font-semibold">{usdcBalance ? formatUnits(usdcBalance, 6) : "0"} USDC</p>
+              <p className="font-semibold">
+                {workingBalance ? formatUnits(workingBalance, 6) : "Loading..."} USDC
+                {balanceError && <span className="text-destructive ml-2">❌</span>}
+                {balanceLoading && <span className="text-muted-foreground ml-2">⏳</span>}
+              </p>
             </div>
           </div>
 
-          {usdcBalance && (usdcBalance < parseUnits(totalAmount.toString(), 6)) && (
+          {workingBalance && (workingBalance < parseUnits(totalAmount.toString(), 6)) && (
             <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg mb-4">
               <AlertCircle className="w-4 h-4 text-destructive" />
               <p className="text-sm text-destructive">
-                Insufficient USDC balance. You need ${totalAmount.toFixed(2)} USDC but have {formatUnits(usdcBalance, 6)} USDC
+                Insufficient USDC balance. You need ${totalAmount.toFixed(2)} USDC but have {formatUnits(workingBalance, 6)} USDC
               </p>
             </div>
           )}
@@ -317,7 +370,7 @@ export function Web3ContractPayment({ formData, setFormData, onDepositComplete }
           ) : (
             <Button 
               onClick={handleDeposit}
-              disabled={isDepositing || isConfirming || !totalAmount || (usdcBalance || (0 as any)) < parseUnits(totalAmount.toString(), 6)}
+              disabled={isDepositing || isConfirming || !totalAmount || !workingBalance || (workingBalance < parseUnits(totalAmount.toString(), 6))}
               className="w-full rounded-full"
             >
               {isDepositing || isConfirming ? (
