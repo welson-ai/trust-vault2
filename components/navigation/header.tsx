@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export function Header() {
   return (
@@ -34,6 +35,7 @@ export function Header() {
             <Button size="sm" asChild className="rounded-lg text-xs h-8 md:h-9 px-2 md:px-3">
               <Link href="/signup">Get Started</Link>
             </Button>
+            <ConnectButton />
           </div>
         </div>
       </div>
