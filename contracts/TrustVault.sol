@@ -4,22 +4,38 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+}
+
 contract TrustVault is ReentrancyGuard, Ownable {
     mapping(address => uint256) public deposits;
     uint256 public totalBalance;
+    IERC20 public usdcToken;
 
     event Deposit(address indexed user, uint256 amount);
     event Withdrawal(address indexed user, uint256 amount);
     event Release(address indexed recipient, uint256 amount);
     event Refund(address indexed user, uint256 amount);
 
-    function deposit() external payable nonReentrant {
-        require(msg.value > 0, "Deposit amount must be greater than 0");
+    constructor(address _usdcTokenAddress) Ownable(msg.sender) {
+        usdcToken = IERC20(_usdcTokenAddress);
+    }
+
+    function deposit(uint256 amount) external nonReentrant {
+        require(amount > 0, "Deposit amount must be greater than 0");
         
-        deposits[msg.sender] += msg.value;
-        totalBalance += msg.value;
+        // Transfer USDC from user to this contract
+        bool transferred = usdcToken.transferFrom(msg.sender, address(this), amount);
+        require(transferred, "USDC transfer failed");
         
-        emit Deposit(msg.sender, msg.value);
+        deposits[msg.sender] += amount;
+        totalBalance += amount;
+        
+        emit Deposit(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) external nonReentrant {
@@ -29,7 +45,8 @@ contract TrustVault is ReentrancyGuard, Ownable {
         deposits[msg.sender] -= amount;
         totalBalance -= amount;
         
-        payable(msg.sender).transfer(amount);
+        bool transferred = usdcToken.transfer(msg.sender, amount);
+        require(transferred, "USDC transfer failed");
         
         emit Withdrawal(msg.sender, amount);
     }
@@ -41,7 +58,8 @@ contract TrustVault is ReentrancyGuard, Ownable {
         
         totalBalance -= amount;
         
-        payable(recipient).transfer(amount);
+        bool transferred = usdcToken.transfer(recipient, amount);
+        require(transferred, "USDC transfer failed");
         
         emit Release(recipient, amount);
     }
@@ -53,7 +71,8 @@ contract TrustVault is ReentrancyGuard, Ownable {
         deposits[user] -= amount;
         totalBalance -= amount;
         
-        payable(user).transfer(amount);
+        bool transferred = usdcToken.transfer(user, amount);
+        require(transferred, "USDC transfer failed");
         
         emit Refund(user, amount);
     }
@@ -66,7 +85,8 @@ contract TrustVault is ReentrancyGuard, Ownable {
         return totalBalance;
     }
 
-    receive() external payable {
-        deposit();
+    // Function to get USDC token address
+    function getUSDCTokenAddress() external view returns (address) {
+        return address(usdcToken);
     }
 }

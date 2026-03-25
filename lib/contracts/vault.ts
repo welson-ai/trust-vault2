@@ -1,10 +1,21 @@
-// Trust Vault Smart Contract ABI
+// Trust Vault Smart Contract ABI (USDC version)
 export const TRUST_VAULT_ABI = [
   {
-    "inputs": [],
+    "inputs": [
+      {"internalType": "address", "name": "_usdcTokenAddress", "type": "address"}
+    ],
+    "name": "constructor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
     "name": "deposit",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -47,6 +58,15 @@ export const TRUST_VAULT_ABI = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getUSDCTokenAddress",
+    "outputs": [
+      {"internalType": "address", "name": "", "type": "address"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {"internalType": "address", "name": "", "type": "address"}
     ],
@@ -61,3 +81,6 @@ export const TRUST_VAULT_ABI = [
 
 // Base Sepolia Contract Address (replace after deployment)
 export const TRUST_VAULT_ADDRESS = "0x1234567890123456789012345678901234567890" as const
+
+// USDC Contract on Base Sepolia
+export const USDC_ADDRESS = "0x036CbD5b381b824e568Ff7c85cE36985D8B764a" as const
